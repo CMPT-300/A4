@@ -56,12 +56,25 @@ void initmem(strategies strategy, size_t sz)
 	if (myMemory != NULL) free(myMemory); /* in case this is not the first time initmem2 is called */
 
 	/* TODO: release any other memory you were using for bookkeeping when doing a re-initialization! */
+	
+	struct memoryList *temp;	
 
+	while(head!=NULL){
+		temp = head->next;		// idk if this is what we're supposed to do
+		free(head);				// might need to free other things too
+		head = temp;
+	}							
 
 	myMemory = malloc(sz);
 	
 	/* TODO: Initialize memory management structure. */
+	head = malloc(sizeof(struct memoryList));
 
+	head->ptr = myMemory;
+	head->size = sz;
+	head->alloc = 0;
+
+	// may need circularly LL for next-fit strategy
 
 }
 
@@ -74,12 +87,21 @@ void initmem(strategies strategy, size_t sz)
 void *mymalloc(size_t requested)
 {
 	assert((int)myStrategy > 0);
+	// printf("size: %p\n", myMemory);
+	// printf("req: %ld\n", requested);
+	if (head==NULL)
+		return NULL;
+
+	int best_size;
+	struct memoryList *trav, *temp, *bestmode;
 	
+
 	switch (myStrategy)
 	  {
 	  case NotSet: 
 	            return NULL;
 	  case First:
+	  			trav = head;
 	            return NULL;
 	  case Best:
 	            return NULL;
