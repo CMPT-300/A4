@@ -4,17 +4,33 @@ Questions
 1) Why is it so important that adjacent free blocks not be left as such?  What
 would happen if they were permitted?
 
+We do it so larger pieces of data can fit into memory. If we left adjacent free blocks, then the memory would get very small overtime and data would not be able to fit into the space.
+
 2) Which function(s) need to be concerned about adjacent free blocks?
 
+Myfree(). This function combines adjacent free blocks so we don't run into the issue mentioned above.
+
 3) Name one advantage of each strategy.
+
+Firstfit: simple, and traverses a relatively low amount.
+
+Bestfit: maintains large blocks of memory and makes small blocks smaller when possible.
+
+Nextfit: simple, and traverses a relatively low amount.
+
+Worstfit: minimizes large blocks of memory, but also minimizes very tiny blocks of memory, allowing most holes to fit more data.
 
 4) Run the stress test on all strategies, and look at the results (tests.out).
 What is the significance of "Average largest free block"?  Which strategy
 generally has the best performance in this metric?  Why do you think this is?
 
+
+
 5) In the stress test results (see Question 4), what is the significance of
 "Average number of small blocks"?  Which strategy generally has the best
 performance in this metric?  Why do you think this is?
+
+Small blocks means fragmentation, which is bad becuase we cannot put anything inside of those blocks and they are wasting space. Worstfit is the best to reduce fragmentation because it always occupies the largest block, thus, minimizing the number of tiny, unusable holes in memory.
 
 6) Eventually, the many mallocs and frees produces many small blocks scattered
 across the memory pool.  There may be enough space to allocate a new block, but
@@ -22,15 +38,24 @@ not in one place.  It is possible to compact the memory, so all the free blocks
 are moved to one large free block.  How would you implement this in the system
 you have built?
 
+I would start at the lowest block, and move it to the lowest unoccupied address, then do then iteratre over the remaining blocks and repeat the process.
+
 7) If you did implement memory compaction, what changes would you need to make
 in how such a system is invoked (i.e. from a user's perspective)?
+
+
 
 8) How would you use the system you have built to implement realloc?  (Brief
 explanation; no code)
 
+
+
 9) Which function(s) need to know which strategy is being used?  Briefly explain
 why this/these and not others.
+
+
 
 10) Give one advantage of implementing memory management using a linked list
 over a bit array, where every bit tells whether its corresponding byte is
 allocated.
+
