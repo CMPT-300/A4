@@ -96,7 +96,7 @@ void *mymalloc(size_t requested)
 	
 	int best_size;
 	struct memoryList *trav, *temp, *bestmode; // we'll need these later prob
-	
+	size_t m;
 
 	switch (myStrategy)
 	{
@@ -117,10 +117,42 @@ void *mymalloc(size_t requested)
 		    break;
 
 	  	case Best:
-	        return NULL;
+	     	temp = NULL;
+	     	m = mySize+1; //set min to the size of the allocated memory + 1 
+	        trav = head;
+			// iterate until we reach the end 
+			while (trav!=NULL){
+				if (trav->size>=req && trav->alloc==0)
+					if(trav->size < m){//if a suitable block smaller than min is found set it as min 
+						m = trav->size;
+						temp = trav;
+					}
+				trav = trav->next;
+			}
+			
+			if (temp==NULL) // no block found
+		        return NULL;
+		    trav = temp; //Set trav=temp for the rest of the function
+		    break;
 
 	  	case Worst:
-	        return NULL;
+	        temp = NULL;
+	     	m = 0; //set max to 0
+	        trav = head;
+			// iterate until we reach the end 
+			while (trav!=NULL){
+				if (trav->size>=req && trav->alloc==0)
+					if(trav->size > m){//if a suitable block larger than max is found set it as max 
+						m = trav->size;
+						temp = trav;
+					}
+				trav = trav->next;
+			}
+			
+			if (temp==NULL) // no block found
+		        return NULL;
+		    trav = temp; //Set trav=temp for the rest of the function
+		    break;
 
 	  	case Next:
 	        return NULL;
