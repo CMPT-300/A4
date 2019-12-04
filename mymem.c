@@ -75,6 +75,8 @@ void initmem(strategies strategy, size_t sz)
 	head->alloc = 0;
 	head->prev = NULL;
 	head->next = NULL; 
+
+	next = head;
 						// may need to add stuff for circular LL (nextfit)
 }
 
@@ -155,14 +157,28 @@ void *mymalloc(size_t requested)
 		    break;
 
 	  	case Next:
-	        return NULL;
+	  		trav = next;
+	  		temp = next->prev; //stores the allocated block
+	  		while (trav != temp){
+	  			if(trav==NULL)
+	  				trav = head; //wrap arround
+	  			else if(trav->size >= req && trav -> alloc == 0)
+	  				break;
+	  			else
+	  				trav = trav->next;
+	  		}
+	  		if (trav == temp)
+		        return NULL;
     } // the below code is designed for firstfit.
       // nextfit's circular behaviour probably won't comply with this,
       // so adjustments/additions might have to be made.
       // don't break it for the other strategies though.
     if(trav!=NULL){
 	    if (trav->size==req) // perfect fit
+	    {
 	    	trav->alloc = 1; // allocate the blocks
+	    	next = trav->ptr+requested;
+	    }
 
 	    else{ // block > requested size. split.
 	    	int excess = trav->size - requested; // holds the unused space in the block
@@ -175,6 +191,7 @@ void *mymalloc(size_t requested)
     		temp->ptr = nextptr; // new block now contains correct base address
     		temp->alloc = 0;	// unallocated
 
+
     		if(trav->next!=NULL){
 	    		temp->next = trav->next;
 	    		trav->next->prev = temp;
@@ -182,6 +199,7 @@ void *mymalloc(size_t requested)
 	    	else
 	    		temp->next = NULL;
 
+			next = temp;
     		trav->next = temp;
     		temp->prev = trav;
     	}
