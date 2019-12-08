@@ -6,7 +6,17 @@
 #include <time.h>
 
 
-/* The main structure for implementing memory allocation.
+/*
+GROUP: 4 MEMBERs
+=========
+ID, computingID, Name
+301 335 629, rsg23, Rajan Grewal
+301 333 284, bhow, Brian How
+301 334 771, jta118, Johnson Tan
+301 333 239, ela57, Eric Leung
+
+
+The main structure for implementing memory allocation.
  * You may change this to fit your implementation.
  */
 
