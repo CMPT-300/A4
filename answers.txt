@@ -4,25 +4,36 @@ Questions
 1) Why is it so important that adjacent free blocks not be left as such?  What
 would happen if they were permitted?
 
-We do it so larger pieces of data can fit into memory. If we left adjacent free blocks, then the memory would get very small overtime and data would not be able to fit into the space.
+We do it so larger pieces of data can fit into memory. If we left adjacent free blocks, then the memory that could have fit into the combined free blocks but not the individual blocks, would skip these blocks even though it can fit.
+
+For example if the adjacent free blocks were of size 4 MB and 6 MB, and we want to fit a block of 8 MB. If the adjacent free blocks were left as such, we would not be able to put our new 8 MB block in this space even though it should fit in the available 10 MB. ( since it thinks theres only 4 MB and 6 MB available not 10 MB)
+
+
 
 2) Which function(s) need to be concerned about adjacent free blocks?
 
-Myfree(). This function combines adjacent free blocks so we don't run into the issue mentioned above.
+Myfree(). This function combines adjacent free blocks so we don't run into the issue mentioned above. Its also the only one that does the work to bring them together.
+
+
 
 3) Name one advantage of each strategy.
 
-Firstfit: simple, and traverses a relatively low amount.
+Firstfit: simplest, and fast in that it traverses the lowest amount from head.
 
-Bestfit: maintains large blocks of memory and makes small blocks smaller when possible.
+Bestfit: maintains large blocks of memory open and makes small blocks smaller when possible. Works well when most allocations are small
 
-Nextfit: simple, and traverses a relatively low amount.
+Nextfit: arguably could be faster than firstfit since we dont have to start at head. Also, nextfit keeps allocated blocks nearby since it works from current position, so could be less fragmentation.
 
-Worstfit: minimizes large blocks of memory, but also minimizes very tiny blocks of memory, allowing most holes to fit more data.
+Worstfit: minimizes large blocks of memory, but also minimizes very tiny blocks of memory, allowing most holes to fit more data. Reduces external fragmentation since reduces amount of small blocks.
+Works well when allocations are medium size since the holes are around that size.
+
+
 
 4) Run the stress test on all strategies, and look at the results (tests.out).
 What is the significance of "Average largest free block"?  Which strategy
 generally has the best performance in this metric?  Why do you think this is?
+
+Largest free block is the largest memory that can be allocated. If average largest free block is higher, we can basically allocate more and bigger data. Best fit will generally perform well for this because it uses smaller holes before larger ones, so it keeps the average free blocks large.
 
 
 
@@ -30,7 +41,11 @@ generally has the best performance in this metric?  Why do you think this is?
 "Average number of small blocks"?  Which strategy generally has the best
 performance in this metric?  Why do you think this is?
 
-Small blocks means fragmentation, which is bad becuase we cannot put anything inside of those blocks and they are wasting space. Worstfit is the best to reduce fragmentation because it always occupies the largest block, thus, minimizing the number of tiny, unusable holes in memory.
+Average number of small blocks shows how much memory is small enough that we probably cant use it.
+Small blocks means external fragmentation, which is bad because we cannot put anything inside of those blocks and they are wasting space. So, we want to keep "Average number of small blocks" low.
+Worstfit is the best to reduce fragmentation because it always occupies the largest block, thus, minimizing the number of tiny, unusable holes in memory.
+
+
 
 6) Eventually, the many mallocs and frees produces many small blocks scattered
 across the memory pool.  There may be enough space to allocate a new block, but
@@ -38,20 +53,41 @@ not in one place.  It is possible to compact the memory, so all the free blocks
 are moved to one large free block.  How would you implement this in the system
 you have built?
 
-I would start at the lowest block, and move it to the lowest unoccupied address, then do then iteratre over the remaining blocks and repeat the process.
+We have two options here: we could move all free blocks to end or move them to the start. There are advantages to moving the free blocks to the start, that would make me want to implement it this way. For example, an advantage is that if the free is at the start, our firstfit would be more efficient to run. To implement this,
+I would create a function that would:
+	- copy lowest free block to the lowest possible address in the memory
+	- repeat for remaining free blocks
+	Result is memory with free block on left and filled blocks on right.
+
+
 
 7) If you did implement memory compaction, what changes would you need to make
 in how such a system is invoked (i.e. from a user's perspective)?
+
+Because we are moving memory blocks around, we now need to ensure that the pointers to these blocks are correct. 
+As the user, you would need to know where the block is and you can do this by having mymalloc with an extra argument (say a pointer p).
+This way when user wants to allocate a block, they should provide the pointer to that block to mymalloc in addition to the size. Now p will always point to the correct block even when moved.
+(i.e. mymalloc(size,p) )
 
 
 
 8) How would you use the system you have built to implement realloc?  (Brief
 explanation; no code)
 
+Realloc can be done in two ways:
+	- expanding or contracting current block to the new size
+	- malloc another block with the new size, and copy the old block into it
+To do it the second way, my realloc function would call malloc(new_size) first, and then copy the necessary parts of the old block over.
+If the new size is larger, copy the whole old block.
+If the new size is smaller, copy up to the smaller size from the old block.
+
 
 
 9) Which function(s) need to know which strategy is being used?  Briefly explain
 why this/these and not others.
+
+mymalloc needs to know to figure out which block to use in the memory to allocate.
+myfree needs to know if it is using next fit, because it needs to update 'next' pointer if it frees the block.
 
 
 
@@ -59,3 +95,5 @@ why this/these and not others.
 over a bit array, where every bit tells whether its corresponding byte is
 allocated.
 
+In a linked list implementation, you can know if a block is big enough just by looking at the size value. In array implementation, you have to actually read through every bit and count the size to know if it is big enough to fit the new block.
+Linked list is more efficient in searching, and works much better on large allocations.
